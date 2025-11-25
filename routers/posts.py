@@ -22,9 +22,8 @@ def get_posts(db: Session = Depends(get_db)):
 def create_post(
     post: PostCreate,
     db: Session = Depends(get_db),
-    get_current_user: int = Depends(oauth2.get_curr_user),
+    user_id: id = Depends(oauth2.get_curr_user),
 ):
-
     new_post = models.Post(**post.model_dump())
     db.add(new_post)
     db.commit()

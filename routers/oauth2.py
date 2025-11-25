@@ -24,18 +24,18 @@ def create_access_token(data: dict):
     return encoded
 
 
-def verify_access_token(token: str, creditentials_exception):
+def verify_access_token(token: str, credentials_exception):
+
     try:
 
-        payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
-
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         id: str = payload.get("user_id")
+        print(f"id is:{id}")
         if not id:
-            raise creditentials_exception
-        token_data = TokenData(id=id)
-    except JWTError as e:
-        raise creditentials_exception
-
+            raise credentials_exception
+        token_data = TokenData(id=str(id))
+    except JWTError:
+        raise credentials_exception
     return token_data
 
 
@@ -44,5 +44,5 @@ def get_curr_user(token: str = Depends(oauth2_scheme)):
     creditentials_exception = HTTPException(
         status_code=401, detail="Unathorized", headers={"WWW-Authenticate": "Bearer"}
     )
-
-    return verify_access_token(token, creditentials_exception)
+    token = verify_access_token(token, creditentials_exception)
+    return token

@@ -22,14 +22,14 @@ def login(
         .first()
     )
     if not user:
-        raise HTTPException(status_code=404, detail="Invalid credentials")
+        raise HTTPException(status_code=403, detail="Invalid credentials")
 
     if not verify_password(
         user_credentials.password,
         user.password,
     ):
-        raise HTTPException(status_code=404, detail="Invalid credentials")
+        raise HTTPException(status_code=403, detail="Invalid credentials")
 
     access_token = create_access_token(data={"user_id": user.id})
 
-    return {"access token": access_token, "token_type": "bearer"}
+    return {"access token": access_token, "token_type": "Bearer"}
