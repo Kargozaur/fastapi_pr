@@ -10,7 +10,9 @@ class Post(Base):
     __tablename__ = "posts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    owner_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     title: Mapped[str] = mapped_column(String(50), nullable=False)
     content: Mapped[str] = mapped_column(String(500), nullable=False)
     published: Mapped[Optional[bool]] = mapped_column(
@@ -25,7 +27,9 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    child: Mapped[List["Post"]] = relationship(back_populates="owner")
+    child: Mapped[List["Post"]] = relationship(
+        back_populates="owner", cascade="all, delete", passive_deletes=True
+    )
     email: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(100), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
