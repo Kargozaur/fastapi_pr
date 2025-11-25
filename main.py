@@ -5,20 +5,12 @@ from psycopg2.extras import RealDictCursor
 import time
 import sqlalchemy.orm.session as Session
 import models
-from database import engine, sessionLocal
+from database import engine, get_db
 
 
 models.Base.metadata.create_all(engine)
 
 app = FastAPI()
-
-
-def get_db():
-    db = sessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 while True:
