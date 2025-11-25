@@ -1,9 +1,12 @@
 from fastapi import Depends, HTTPException
 from jose import JWTError, jwt
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
 import os
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
+from database import get_db
+import models
 from schemas import TokenData
 
 load_dotenv()
@@ -40,9 +43,10 @@ def verify_access_token(token: str, credentials_exception):
 
 
 # Function to verify user login
-def get_curr_user(token: str = Depends(oauth2_scheme)):
+def get_curr_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     creditentials_exception = HTTPException(
         status_code=401, detail="Unathorized", headers={"WWW-Authenticate": "Bearer"}
     )
     token = verify_access_token(token, creditentials_exception)
-    return token
+    user = db.query(models.User).filter(models.User.id == token.id).first()
+    return user

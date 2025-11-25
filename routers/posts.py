@@ -22,7 +22,7 @@ def get_posts(db: Session = Depends(get_db)):
 def create_post(
     post: PostCreate,
     db: Session = Depends(get_db),
-    user_id: id = Depends(oauth2.get_curr_user),
+    current_user: id = Depends(oauth2.get_curr_user),
 ):
     new_post = models.Post(**post.model_dump())
     db.add(new_post)
@@ -47,7 +47,11 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/{post_id}", status_code=204)
-def delete_post(post_id: int, db: Session = Depends(get_db)):
+def delete_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: id = Depends(oauth2.get_curr_user),
+):
     # cursor.execute("""DELETE FROM posts WHERE id = %s returning * """, (str(post_id)))
     # deleted_post = cursor.fetchone()
     deleted_post = db.query(models.Post).filter(models.Post.id == post_id)
@@ -61,7 +65,12 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{post_id}", status_code=205)
-def update_post(post_id: int, post: PostUpdate, db: Session = Depends(get_db)):
+def update_post(
+    post_id: int,
+    post: PostUpdate,
+    db: Session = Depends(get_db),
+    current_user: id = Depends(oauth2.get_curr_user),
+):
 
     post_query = db.query(models.Post).filter(models.Post.id == post_id)
     db_post = post_query.first()
