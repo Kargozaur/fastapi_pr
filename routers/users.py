@@ -6,7 +6,7 @@ from schemas import UserCreate, UserResponse
 from utility import hash_password
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/", status_code=201, response_model=UserResponse)

@@ -6,7 +6,7 @@ import models
 from schemas import PostBase, PostCreate, PostResponse, PostUpdate
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/posts")
+router = APIRouter(prefix="/posts", tags=["posts"])
 
 # CRUD realirealization
 
