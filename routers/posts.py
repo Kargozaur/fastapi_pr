@@ -3,6 +3,7 @@ from fastapi import Depends, HTTPException, Response
 import sqlalchemy.orm.session as Session
 from database import get_db
 import models
+from routers import oauth2
 from schemas import PostBase, PostCreate, PostResponse, PostUpdate
 from fastapi import APIRouter
 
@@ -18,7 +19,11 @@ def get_posts(db: Session = Depends(get_db)):
 
 
 @router.post("/", status_code=201, response_model=PostResponse)
-def create_post(post: PostCreate, db: Session = Depends(get_db)):
+def create_post(
+    post: PostCreate,
+    db: Session = Depends(get_db),
+    get_current_user: int = Depends(oauth2.get_curr_user),
+):
 
     new_post = models.Post(**post.model_dump())
     db.add(new_post)
