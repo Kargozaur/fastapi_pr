@@ -36,6 +36,8 @@ def verify_access_token(token: str, creditentials_exception):
     except JWTError as e:
         raise creditentials_exception
 
+    return token_data
+
 
 # Function to verify user login
 def get_curr_user(token: str = Depends(oauth2_scheme)):
