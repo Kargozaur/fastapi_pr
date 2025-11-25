@@ -1,19 +1,32 @@
 from fastapi import FastAPI, HTTPException, Depends, Response
-from pydantic import BaseModel
 import sqlalchemy.orm.session as Session
 import models
 from database import engine, get_db
 from sqlalchemy import delete
+from schemas import (
+    PostBase,
+    PostCreate,
+    PostUpdate,
+    PostResponse,
+    UserCreate,
+    UserResponse,
+)
+from typing import List
+from pwdlib import PasswordHash
+import jwt
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+Password_hash = PasswordHash.recommended()
 
 models.Base.metadata.create_all(engine)
 
 app = FastAPI()
-
-
-class PostM(BaseModel):
-    title: str
-    content: str
-    published: bool = True
 
 
 @app.get("/")
@@ -21,35 +34,35 @@ def root():
     return {"message": "hello world"}
 
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[PostBase])
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
-    return {"status": posts}
+    return posts
 
 
-@app.post("/posts", status_code=201)
-def create_post(post: PostM, db: Session = Depends(get_db)):
+@app.post("/posts", status_code=201, response_model=PostResponse)
+def create_post(post: PostCreate, db: Session = Depends(get_db)):
 
     new_post = models.Post(**post.model_dump())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"data": new_post}
+    return new_post
 
 
 @app.get("/posts/latest")
 def get_latest(db: Session = Depends(get_db)):
     query = db.query(models.Post).order_by(models.Post.id.desc()).first()
-    return {"status": query}
+    return query
 
 
-@app.get("/posts/{post_id}")
+@app.get("/posts/{post_id}", response_model=PostBase)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     test_id = db.query(models.Post).filter(models.Post.id == post_id).first()
 
     if not test_id:
         raise HTTPException(status_code=404, detail="post not found")
-    return {"data": test_id}
+    return test_id
 
 
 @app.delete("/posts/{post_id}", status_code=204)
@@ -63,11 +76,11 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
     deleted_post.delete(synchronize_session=False)
     db.commit()
     # return statement doesnt do anything
-    return {"deleted": deleted_post}
+    return deleted_post
 
 
 @app.put("/posts/{post_id}", status_code=205)
-def update_post(post_id: int, post: PostM, db: Session = Depends(get_db)):
+def update_post(post_id: int, post: PostUpdate, db: Session = Depends(get_db)):
 
     post_query = db.query(models.Post).filter(models.Post.id == post_id)
     db_post = post_query.first()
@@ -79,3 +92,15 @@ def update_post(post_id: int, post: PostM, db: Session = Depends(get_db)):
     )
     db.commit()
     return Response(status_code=205)
+
+
+@app.post("/users", status_code=201, response_model=UserResponse)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    hashed_passwd = "pass"
+    user.password = hashed_passwd
+    new_user = models.User(**user.model_dump())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
