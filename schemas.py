@@ -35,3 +35,7 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attribute = True
+
+
+class UserLogin(UserCreate):
+    pass

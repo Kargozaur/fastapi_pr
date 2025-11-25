@@ -11,6 +11,6 @@ def hash_password(password: str):
 
 
 # function to verify password
-def verify_password(password: str, hashed: str):
-    sha = hashlib.sha256(password.encode()).digest()
-    return bcrypt.checkpw(sha, hashed.encode())
+def verify_password(user_password: str, db_hashed: str):
+    sha = hashlib.sha256(user_password.encode()).digest()
+    return bcrypt.checkpw(sha, db_hashed.encode())
