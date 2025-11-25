@@ -6,10 +6,10 @@ from schemas import UserCreate, UserResponse
 from utility import hash_password
 from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter(prefix="/users")
 
 
-@router.post("/users", status_code=201, response_model=UserResponse)
+@router.post("/", status_code=201, response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     hashed_passwd = hash_password(user.password)
     user.password = hashed_passwd
@@ -20,7 +20,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
-@router.get("/users/{uid}", status_code=200, response_model=UserResponse)
+@router.get("/{uid}", status_code=200, response_model=UserResponse)
 def get_user(uid: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == uid).first()
 
