@@ -13,6 +13,7 @@ class Post(Base):
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    owner: Mapped["User"] = relationship("User", back_populates="posts")
     title: Mapped[str] = mapped_column(String(50), nullable=False)
     content: Mapped[str] = mapped_column(String(500), nullable=False)
     published: Mapped[Optional[bool]] = mapped_column(
@@ -27,8 +28,8 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    child: Mapped[List["Post"]] = relationship(
-        back_populates="owner", cascade="all, delete", passive_deletes=True
+    posts: Mapped[List["Post"]] = relationship(
+        "Post", back_populates="owner", cascade="all, delete", passive_deletes=True
     )
     email: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(100), nullable=False)

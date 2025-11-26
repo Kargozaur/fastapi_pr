@@ -4,7 +4,7 @@ import sqlalchemy.orm.session as Session
 from database import get_db
 import models
 from routers import oauth2
-from schemas import PostBase, PostCreate, PostResponse, PostUpdate
+from schemas import GetPosts, PostBase, PostCreate, PostResponse, PostUpdate
 from fastapi import APIRouter
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 # CRUD realirealization
 
 
-@router.get("/", response_model=List[PostBase])
+@router.get("/", response_model=List[GetPosts])
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
@@ -24,7 +24,8 @@ def create_post(
     db: Session = Depends(get_db),
     current_user: id = Depends(oauth2.get_curr_user),
 ):
-    new_post = models.Post(**post.model_dump())
+
+    new_post = models.Post(owner_id=current_user.id, **post.model_dump())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -37,10 +38,9 @@ def get_latest(db: Session = Depends(get_db)):
     return query
 
 
-@router.get("/{post_id}", response_model=PostBase)
+@router.get("/{post_id}", response_model=GetPosts)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     test_id = db.query(models.Post).filter(models.Post.id == post_id).first()
-
     if not test_id:
         raise HTTPException(status_code=404, detail="post not found")
     return test_id
@@ -52,15 +52,17 @@ def delete_post(
     db: Session = Depends(get_db),
     current_user: id = Depends(oauth2.get_curr_user),
 ):
-    # cursor.execute("""DELETE FROM posts WHERE id = %s returning * """, (str(post_id)))
-    # deleted_post = cursor.fetchone()
+
     deleted_post = db.query(models.Post).filter(models.Post.id == post_id)
-    if not deleted_post.first():
+    post_var = deleted_post.first()
+    if not post_var:
         raise HTTPException(status_code=404, detail="post not found")
-    # conn.commit()
+
+    if post_var.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
     deleted_post.delete(synchronize_session=False)
     db.commit()
-    # return statement doesnt do anything
+
     return deleted_post
 
 
@@ -76,6 +78,8 @@ def update_post(
     db_post = post_query.first()
     if not db_post:
         raise HTTPException(status_code=404, detail="post not found")
+    if db_post.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unathorized")
     post_query.update(
         post.model_dump(),
         synchronize_session=False,

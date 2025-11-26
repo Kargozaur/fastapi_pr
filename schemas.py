@@ -13,6 +13,12 @@ class PostCreate(PostBase):
     pass
 
 
+class GetPosts(PostBase):
+    id: int
+    created_at: datetime
+    owner_id: int
+
+
 class PostUpdate(PostBase):
     published: bool
 
