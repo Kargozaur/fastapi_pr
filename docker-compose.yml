@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  database:
+    image: postgres:18.1-alpine3.22
+    environment:
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=fastapi
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    shm_size: 256mb
+    restart: always
+    networks:
+      - internalNetwork
+
+  app:
+    image: python3.14-alpine3.22
+    container_name: fastapi_pr
+    env_file:
+      - .env
+    ports:
+      - "7000:7000"
+    depends_on:
+      - database
+    networks:
+      - internalNetwork
+
+volumes:
+  db_data:
+
+
+networks:
+  internalNetwork:
+    driver: bridge
