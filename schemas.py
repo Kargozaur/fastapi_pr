@@ -14,6 +14,7 @@ class PostCreate(PostBase):
 
 
 class GetPosts(PostBase):
+    owner: UserResponse
     id: int
     created_at: datetime
     owner_id: int

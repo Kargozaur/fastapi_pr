@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import Depends, HTTPException, Response
 import sqlalchemy.orm.session as Session
 from database import get_db
@@ -13,8 +13,19 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 
 
 @router.get("/", response_model=List[GetPosts])
-def get_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
+def get_posts(
+    db: Session = Depends(get_db),
+    limit: int = 10,
+    skip: int = 1,
+    search: Optional[str] = "",
+):
+    posts = (
+        db.query(models.Post)
+        .filter(models.Post.title.contains(search))
+        .limit(limit)
+        .offset(skip)
+        .all()
+    )
     return posts
 
 
