@@ -14,7 +14,7 @@ services:
       - internalNetwork
 
   app:
-    image: python3.14-alpine3.22
+    image: python:3.12-slim
     container_name: fastapi_pr
     env_file:
       - .env

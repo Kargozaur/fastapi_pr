@@ -13,12 +13,6 @@ class PostCreate(PostBase):
     pass
 
 
-class GetPosts(PostBase):
-    owner: UserResponse
-    id: int
-    created_at: datetime
-    owner_id: int
-
 
 class PostUpdate(PostBase):
     published: bool
@@ -44,6 +38,11 @@ class UserResponse(BaseModel):
     class Config:
         from_attribute = True
 
+class GetPosts(PostBase):
+    owner: UserResponse
+    id: int
+    created_at: datetime
+    owner_id: int
 
 class UserLogin(UserCreate):
     pass

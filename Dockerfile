@@ -1,15 +1,16 @@
-FROM python3.14-alpine
+FROM python:3.12-slim
 
-WORKDIR /app
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*  
 
-RUN apk add --no-cache gcc musl-dev libffi-dev openssl-dev python3-dev
+RUN curl -sSL https://install.python-poetry.org | python3 -  
+ENV PATH="/root/.local/bin:$PATH"  
 
-COPY pyproject.toml . poetry.lock* ./
+RUN poetry --version  
+WORKDIR /app 
+COPY pyproject.toml ./ 
 
-RUN pip install --no-cache-dir -r poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-root --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-interaction --no-root
 
-COPY . .
-
-CMD [ "uvicorn", "main:app", "--host 0.0.0.0", "-port 7000"]
+COPY . . 
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7000"]
