@@ -3,25 +3,34 @@ services:
   database:
     image: postgres:18.1-alpine3.22
     environment:
-      - POSTGRES_PASSWORD=1234
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=fastapi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fastapi
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - /home/illia/db_data:/var/lib/postgresql/data
     shm_size: 256mb
-    restart: always
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
     networks:
       - internalNetwork
 
   app:
-    image: python:3.12-slim
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: fastapi_pr
     env_file:
       - .env
     ports:
       - "7000:7000"
+    volumes:
+      - ./:/app
     depends_on:
       - database
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@database:5432/postgres
+    command: uvicorn main:app --host 0.0.0.0 --port 7000 --reload
     networks:
       - internalNetwork
 
